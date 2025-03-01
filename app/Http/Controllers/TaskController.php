@@ -19,11 +19,29 @@ class TaskController extends Controller
     /**
      * @return View
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        $tasks = Task::query()
-            ->where('user_id', auth()->id())
-            ->get();
+//        $tasks = Task::query()
+//            ->where('user_id', auth()->id())
+//            ->get();
+//
+//        return view('tasks.index', compact('tasks'));
+
+        $query = Task::query()->where('user_id', auth()->id());
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('priority')) {
+            $query->where('priority', $request->priority);
+        }
+
+        if ($request->filled('due_date')) {
+            $query->whereDate('due_date', $request->due_date);
+        }
+
+        $tasks = $query->get();
 
         return view('tasks.index', compact('tasks'));
     }
