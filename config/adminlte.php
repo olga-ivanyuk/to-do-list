@@ -321,8 +321,8 @@ return [
             'can' => 'manage-blog',
         ],
         [
-            'text' => 'Lists',
-            'url' => 'admin/lists',
+            'text' => 'Tasks',
+            'url' => 'tasks',
             'icon' => 'far fa-fw fa-file',
             'label_color' => 'success',
         ],
