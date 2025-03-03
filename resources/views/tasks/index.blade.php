@@ -48,6 +48,7 @@
             <th>Status</th>
             <th>Data wykonania</th>
             <th>Akcje</th>
+            <th>Link</th>
         </tr>
         </thead>
         <tbody>
@@ -70,6 +71,12 @@
                 <td>
                     <a href="{{ route('tasks.edit', $task) }}" class="btn btn-sm btn-warning">Edytuj</a>
                     <a href="{{ route('tasks.show', $task) }}" class="btn btn-sm btn-info">Zobacz</a>
+
+                    <form action="{{ route('tasks.generate_link', $task) }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-primary">Utwórz publiczny link</button>
+                    </form>
+
                     <form action="{{ route('tasks.destroy', $task) }}" method="POST" class="d-inline">
                         @csrf
                         @method('DELETE')
@@ -78,6 +85,13 @@
                         </button>
                     </form>
                 </td>
+                @if($task->access_token)
+                    <td>
+                        <input type="text" id="sharedLink" class="form-control"
+                               value="{{ route('tasks.shared', $task->access_token) }}" readonly>
+                        <button class="btn btn-secondary mt-2" onclick="copyLink()">Skopiuj</button>
+                    </td>
+                @endif
             </tr>
         @empty
             <tr>
@@ -88,3 +102,16 @@
         </tbody>
     </table>
 @stop
+<script>
+    function copyLink() {
+        let copyText = document.getElementById("sharedLink");
+        console.log(copyText);
+        navigator.clipboard.writeText(copyText.value)
+            .then(() => {
+                alert("Link skopiowany!");
+            })
+            .catch(err => {
+                console.error("Błąd podczas kopiowania linku: ", err);
+            });
+    }
+</script>

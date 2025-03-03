@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Task\StoreRequest;
 use App\Http\Requests\Task\UpdateRequest;
 use App\Models\Task;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -13,7 +15,7 @@ class TaskController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware('auth')->except(['showSharedTask']);
     }
 
     /**
@@ -21,12 +23,6 @@ class TaskController extends Controller
      */
     public function index(Request $request): View
     {
-//        $tasks = Task::query()
-//            ->where('user_id', auth()->id())
-//            ->get();
-//
-//        return view('tasks.index', compact('tasks'));
-
         $query = Task::query()->where('user_id', auth()->id());
 
         if ($request->filled('status')) {
@@ -95,6 +91,7 @@ class TaskController extends Controller
     public function update(UpdateRequest $request, Task $task): RedirectResponse
     {
         $validated = $request->validated();
+
         $validated['user_id'] = auth()->id();
 
         $task->update($validated);
@@ -110,5 +107,34 @@ class TaskController extends Controller
     {
         $task->delete();
         return redirect()->route('tasks.index');
+    }
+
+    /**
+     * @param Task $task
+     * @return RedirectResponse
+     */
+    public function generateLink(Task $task): RedirectResponse
+    {
+        $task->generateAccessToken();
+
+        return back()->with('success', 'Link został utworzony: ' . route('tasks.shared', $task->access_token));
+    }
+
+    /**
+     * @param $token
+     * @return Factory|\Illuminate\Contracts\View\View|Application|object
+     */
+    public function showSharedTask($token)
+    {
+        $task = Task::query()
+            ->where('access_token', $token)
+            ->where('access_expires_at', '>', now())
+            ->first();
+
+        if (!$task) {
+            abort(404, 'Link jest nieprawidłowy lub wygasł.');
+        }
+
+        return view('tasks.shared', compact('task'));
     }
 }
