@@ -66,7 +66,7 @@
                 {{ ucfirst($task->status) }}
             </span>
                 </td>
-                <td>{{ $task->due_date }}</td>
+                <td>{{ $task->due_date->format('d.m.Y') }}</td>
                 <td>
                     <a href="{{ route('tasks.edit', $task) }}" class="btn btn-sm btn-warning">Edytuj</a>
                     <a href="{{ route('tasks.show', $task) }}" class="btn btn-sm btn-info">Zobacz</a>
