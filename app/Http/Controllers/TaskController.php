@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Task\StoreRequest;
 use App\Http\Requests\Task\UpdateRequest;
 use App\Models\Task;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Spatie\GoogleCalendar\Event;
 
 class TaskController extends Controller
 {
@@ -68,8 +70,10 @@ class TaskController extends Controller
         $validated = $request->validated();
         $validated['user_id'] = auth()->id();
 
-        Task::query()
+        $task = Task::query()
             ->create($validated);
+
+        $this->attachToGoogleCalendar($task);
 
         return redirect()->route('tasks.index');
     }
@@ -90,13 +94,25 @@ class TaskController extends Controller
      */
     public function update(UpdateRequest $request, Task $task): RedirectResponse
     {
+        if ($task->user_id !== auth()->id()) {
+            abort(403, 'Brak dostępu do tego zadania');
+        }
+
         $validated = $request->validated();
-
         $validated['user_id'] = auth()->id();
-
         $task->update($validated);
 
-        return redirect()->route('tasks.index');
+        if ($task->google_calendar_event_id) {
+            $event = Event::find($task->google_calendar_event_id);
+            if ($event) {
+                $event->name = $task->title;
+                $event->startDateTime = Carbon::parse($task->due_date);
+                $event->endDateTime = Carbon::parse($task->due_date);
+                $event->save();
+            }
+        }
+
+        return redirect()->route('tasks.index')->with('success', 'Zadanie zaktualizowane i zapisane w Google Calendar!');
     }
 
     /**
@@ -105,8 +121,20 @@ class TaskController extends Controller
      */
     public function destroy(Task $task): RedirectResponse
     {
+        if ($task->user_id !== auth()->id()) {
+            abort(403, 'Brak dostępu do tego zadania');
+        }
+
+        if (!empty($task->google_calendar_event_id)) {
+            $event = Event::find($task->google_calendar_event_id);
+            if ($event) {
+                $event->delete();
+            }
+        }
+
         $task->delete();
-        return redirect()->route('tasks.index');
+
+        return redirect()->route('tasks.index')->with('success', 'Zadanie usunięto razem z Google Calendar');
     }
 
     /**
@@ -136,5 +164,24 @@ class TaskController extends Controller
         }
 
         return view('tasks.shared', compact('task'));
+    }
+
+    /**
+     * @param Task $task
+     * @return RedirectResponse
+     */
+    public function attachToGoogleCalendar(Task $task): RedirectResponse
+    {
+        $event = new Event;
+        $event->name = $task->title;
+        $event->startDate = Carbon::parse($task->due_date);
+        $event->endDate = Carbon::parse($task->due_date);
+        $event->setColorId(6);
+        $event = $event->save();
+
+        $task->google_calendar_event_id = $event->id;
+        $task->save();
+
+        return back()->with('success', 'Zadanie dodano do Google Calendar');
     }
 }

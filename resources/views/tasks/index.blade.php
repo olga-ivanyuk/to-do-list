@@ -47,7 +47,7 @@
             <th>Priorytet</th>
             <th>Status</th>
             <th>Data wykonania</th>
-            <th>Akcje</th>
+            <th style="width: 30%; white-space: nowrap;">Akcje</th>
             <th>Link</th>
         </tr>
         </thead>
