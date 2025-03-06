@@ -24,7 +24,6 @@
                 <label for="priority">Priorytet</label>
                 <select name="priority" id="priority" class="form-control">
                     <option value="">Wszystkie</option>
-                    <option value="low" {{ request('priority') == 'low' ? 'selected' : '' }}>Niski</option>
                     <option value="medium" {{ request('priority') == 'medium' ? 'selected' : '' }}>Średni</option>
                     <option value="high" {{ request('priority') == 'high' ? 'selected' : '' }}>Wysoki</option>
                 </select>
@@ -71,7 +70,7 @@
                 <td>
                     <a href="{{ route('tasks.edit', $task) }}" class="btn btn-sm btn-warning">Edytuj</a>
                     <a href="{{ route('tasks.show', $task) }}" class="btn btn-sm btn-info">Zobacz</a>
-
+                    <a href="{{ route('tasks.history', $task) }}" class="btn btn-sm btn-dark">Zobacz historię zmian</a>
                     <form action="{{ route('tasks.generate_link', $task) }}" method="POST" class="d-inline">
                         @csrf
                         <button type="submit" class="btn btn-sm btn-primary">Utwórz publiczny link</button>

@@ -54,4 +54,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Task::class);
     }
+
+    /**
+     * @return HasMany
+     */
+    public function taskHistories(): HasMany
+    {
+        return $this->hasMany(TaskHistory::class);
+    }
 }

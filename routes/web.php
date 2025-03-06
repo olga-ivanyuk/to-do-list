@@ -17,6 +17,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('tasks', TaskController::class);
     Route::post('/tasks/{task}/generate-link', [TaskController::class, 'generateLink'])
         ->name('tasks.generate_link');
+    Route::get('/tasks/{task}/history', [TaskController::class, 'showHistory'])->name('tasks.history');
 });
 
 Route::get('/tasks/shared/{token}', [TaskController::class, 'showSharedTask'])
